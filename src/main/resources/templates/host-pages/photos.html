@@ -78,7 +78,7 @@
 <p>최소 1장, 최대 5장의 사진을 업로드하세요.</p>
 
 <!-- ✅ 사진 업로드 -->
-<form action="/user/photos/save" method="post" enctype="multipart/form-data">
+
 
   <label for="photoUpload" class="upload-container">
     <i class="fas fa-upload"></i>
@@ -98,94 +98,88 @@
    ✅ 다음 버튼 -->
 
 
-  <button type="submit" class="next-btn">다음</button>
-</form>
+<button type="button" class="next-btn" onclick="savePhotos()">다음</button>
+
 
 <script>
+  const hostData = JSON.parse(localStorage.getItem("hostData")) || {};
+  hostData.fileUrls = hostData.fileUrls || [];
+
   const fileInput = document.getElementById("photoUpload");
   const previewContainer = document.getElementById("photoPreview");
-  let selectedFiles = []; // 선택된 파일 리스트
+  let selectedFiles = []; // 파일 객체
+  let previewUrls = [];   // Base64 또는 임시 URL 저장용
 
-  fileInput.addEventListener("change", function(event) {
-      const files = Array.from(event.target.files);
-
-      if (selectedFiles.length + files.length > 5) {
-          alert("최대 5장의 사진만 업로드할 수 있습니다.");
-          return;
-      }
-
-      files.forEach(file => {
-          if (selectedFiles.length >= 5) return;
-
-          selectedFiles.push(file); // 파일 배열에 추가
-
-          const reader = new FileReader();
-          reader.onload = function(e) {
-              const photoItem = document.createElement("div");
-              photoItem.classList.add("photo-item");
-
-              const imgElement = document.createElement("img");
-              imgElement.src = e.target.result;
-
-              const deleteButton = document.createElement("button");
-              deleteButton.classList.add("delete-btn");
-              deleteButton.innerHTML = "×";
-
-              const fileIndex = selectedFiles.length - 1;
-              deleteButton.setAttribute("data-index", fileIndex);
-              deleteButton.onclick = function() {
-                  removePhoto(fileIndex);
-              };
-
-              photoItem.appendChild(imgElement);
-              photoItem.appendChild(deleteButton);
-              previewContainer.appendChild(photoItem);
-          };
-          reader.readAsDataURL(file);
+  // ✅ 로드 시 복원
+  document.addEventListener("DOMContentLoaded", function () {
+    if (hostData.fileUrls && hostData.fileUrls.length > 0) {
+      hostData.fileUrls.forEach((url, index) => {
+        renderPreviewItem(url, index);
       });
-
-      updateFileInput();
+    }
   });
 
+  fileInput.addEventListener("change", function (event) {
+    const files = Array.from(event.target.files);
+
+    if (hostData.fileUrls.length + files.length > 5) {
+      alert("최대 5장의 사진만 업로드할 수 있습니다.");
+      return;
+    }
+
+    files.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const base64 = e.target.result;
+
+        hostData.fileUrls.push(base64);
+        selectedFiles.push(file);
+        renderPreviewItem(base64, hostData.fileUrls.length - 1);
+        localStorage.setItem("hostData", JSON.stringify(hostData));
+      };
+      reader.readAsDataURL(file);
+    });
+  });
+
+  function renderPreviewItem(src, index) {
+    const photoItem = document.createElement("div");
+    photoItem.classList.add("photo-item");
+
+    const imgElement = document.createElement("img");
+    imgElement.src = src;
+
+    const deleteButton = document.createElement("button");
+    deleteButton.classList.add("delete-btn");
+    deleteButton.innerHTML = "×";
+    deleteButton.setAttribute("data-index", index);
+    deleteButton.onclick = function () {
+      removePhoto(index);
+    };
+
+    photoItem.appendChild(imgElement);
+    photoItem.appendChild(deleteButton);
+    previewContainer.appendChild(photoItem);
+  }
+
   function removePhoto(index) {
-      selectedFiles.splice(index, 1); // 파일 리스트에서 제거
-      renderPreview();
-      updateFileInput();
+    hostData.fileUrls.splice(index, 1);
+    localStorage.setItem("hostData", JSON.stringify(hostData));
+    previewContainer.innerHTML = "";
+    hostData.fileUrls.forEach((url, idx) => renderPreviewItem(url, idx));
   }
 
-  function renderPreview() {
-      previewContainer.innerHTML = "";
-      selectedFiles.forEach((file, index) => {
-          const reader = new FileReader();
-          reader.onload = function(e) {
-              const photoItem = document.createElement("div");
-              photoItem.classList.add("photo-item");
+  function savePhotos() {
+    if (hostData.fileUrls.length === 0) {
+      alert("사진을 최소 1장 업로드해주세요.");
+      return;
+    }
 
-              const imgElement = document.createElement("img");
-              imgElement.src = e.target.result;
-
-              const deleteButton = document.createElement("button");
-              deleteButton.classList.add("delete-btn");
-              deleteButton.innerHTML = "×";
-              deleteButton.setAttribute("data-index", index);
-              deleteButton.onclick = function() {
-                  removePhoto(index);
-              };
-
-              photoItem.appendChild(imgElement);
-              photoItem.appendChild(deleteButton);
-              previewContainer.appendChild(photoItem);
-          };
-          reader.readAsDataURL(file);
-      });
-  }
-
-  function updateFileInput() {
-      const dataTransfer = new DataTransfer();
-      selectedFiles.forEach(file => dataTransfer.items.add(file));
-      fileInput.files = dataTransfer.files; // ✅ input 파일 리스트 업데이트
+    localStorage.setItem("hostData", JSON.stringify(hostData));
+    console.log("📸 저장된 이미지 목록:", hostData.fileUrls);
+    window.location.href = "/user/roomName";
   }
 </script>
+
 
 </body>
 </html>

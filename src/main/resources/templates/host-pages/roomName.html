@@ -84,19 +84,43 @@
     <h1>숙소 이름을 입력해주세요.</h1>
     <p>숙소의 특징이 잘 드러나는 이름을 작성하세요.</p>
 
-    <!-- ✅ 숙소 이름 입력 폼 -->
-    <form action="/user/roomName/save" method="post">
-        <div class="input-container">
-            <input type="text" name="name" id="roomName" placeholder="숙소 이름 입력" th:value="${hostDto.name}">
-        </div>
+    <div class="input-container">
+        <input type="text" id="roomName" placeholder="숙소 이름 입력">
+    </div>
 
-        <!-- ✅ 숨겨진 입력 필드 (타임리프 세션 유지) -->
-        <input type="hidden" name="roomId" th:value="${hostDto.roomId}">
-
-        <!-- ✅ 다음 버튼 -->
-        <button type="submit" class="next-btn">다음</button>
-    </form>
+    <button type="button" class="next-btn" onclick="saveRoomName()">다음</button>
 </div>
 
+<script>
+    const hostData = JSON.parse(localStorage.getItem("hostData")) || {};
+
+    // ✅ 입력 값 복원
+    document.addEventListener("DOMContentLoaded", function () {
+      const input = document.getElementById("roomName");
+      if (hostData.name) {
+        input.value = hostData.name;
+      }
+    });
+
+    function saveRoomName() {
+      const nameInput = document.getElementById("roomName");
+      const name = nameInput.value.trim();
+
+      if (!name) {
+        alert("숙소 이름을 입력해주세요.");
+        nameInput.focus();
+        return;
+      }
+
+      hostData.name = name;
+      localStorage.setItem("hostData", JSON.stringify(hostData));
+      console.log("🏠 저장된 숙소 이름:", hostData.name);
+
+      window.location.href = "/user/title";
+    }
+</script>
+
+
 </body>
+
 </html>

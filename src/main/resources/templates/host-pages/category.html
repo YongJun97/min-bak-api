@@ -73,8 +73,7 @@
 <div class="container">
   <h2>숙소 카테고리를 선택하세요.</h2>
 
-  <form id="categoriesForm" action="/user/category/save" method="post">
-    <input type="hidden" id="selectedCategoriesInput" name="categoryIds">
+
     <div class="grid">
       <div class="category" data-category-id="1"><i class="fas fa-tree"></i> 통나무집</div>
       <div class="category" data-category-id="2"><i class="fas fa-star"></i> 인기 숙소</div>
@@ -99,31 +98,49 @@
       <div class="category" data-category-id="21"><i class="fas fa-water"></i> 서핑</div>
       <div class="category" data-category-id="22"><i class="fas fa-paw"></i> 반려동물</div>
     </div>
-    <button type="submit" class="next-btn">다음</button>
-  </form>
+  <!-- ✅ 다음 버튼 -->
+  <button type="button" class="next-btn" onclick="saveCategories()">다음</button>
+
 </div>
 
 <script>
-  document.addEventListener("DOMContentLoaded", function() {
-      const categories = document.querySelectorAll(".category");
-      const hiddenInput = document.getElementById("selectedCategoriesInput");
-      let selectedCategories = new Set();
+  const hostData = JSON.parse(localStorage.getItem("hostData")) || {};
+  hostData.categoryIds = hostData.categoryIds || [];
 
-      categories.forEach(category => {
-          category.addEventListener("click", function() {
-              let categoryId = this.dataset.categoryId;
-              if (selectedCategories.has(categoryId)) {
-                  selectedCategories.delete(categoryId);
-                  this.classList.remove("selected");
-              } else {
-                  selectedCategories.add(categoryId);
-                  this.classList.add("selected");
-              }
-              hiddenInput.value = Array.from(selectedCategories).join(",");
-          });
+  let selectedCategories = new Set(hostData.categoryIds);
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const categories = document.querySelectorAll(".category");
+
+    // ✅ 기존 선택 복원
+    categories.forEach(category => {
+      const id = parseInt(category.dataset.categoryId);
+      if (selectedCategories.has(id)) {
+        category.classList.add("selected");
+      }
+
+      // ✅ 클릭 시 선택/해제
+      category.addEventListener("click", function () {
+        if (selectedCategories.has(id)) {
+          selectedCategories.delete(id);
+          this.classList.remove("selected");
+        } else {
+          selectedCategories.add(id);
+          this.classList.add("selected");
+        }
       });
+    });
   });
+
+  // ✅ 저장 후 다음 페이지로 이동
+  function saveCategories() {
+    hostData.categoryIds = Array.from(selectedCategories);
+    localStorage.setItem("hostData", JSON.stringify(hostData));
+    console.log("📦 선택된 카테고리 ID 목록:", hostData.categoryIds);
+    window.location.href = "/user/photos";
+  }
 </script>
+
 
 </body>
 </html>

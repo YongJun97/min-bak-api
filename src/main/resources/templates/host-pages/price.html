@@ -16,6 +16,17 @@
         height: 100vh;
         margin: 0;
     }
+    .container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.form-box {
+  text-align: center;
+  margin-top: 20px;
+}
     h1 {
         color: #000;
         font-size: 24px;
@@ -58,39 +69,56 @@
 </head>
 <body>
 
-<h1>숙박 요금을 입력하세요</h1>
+<div class="container">
+  <h1>숙박 요금을 입력하세요</h1>
 
-<!-- ✅ 주중 요금 입력 폼 -->
-<form action="/user/price/save" method="post">
-  <input type="number" id="weekDayPrice" name="price" placeholder="주중 요금을 입력하세요"
-         min="0" th:value="${hostDto.price}">
-  <div class="result" id="result"></div>
+  <div class="form-box">
+    <input type="number" id="weekDayPrice" placeholder="주중 요금을 입력하세요" min="0">
+    <div class="result" id="result"></div>
+  </div>
 
-  <!-- ✅ 다음 버튼 -->
-  <button type="submit" class="next-btn">다음</button>
-</form>
+  <button type="button" class="next-btn" onclick="savePrice()">다음</button>
+</div>
+
 
 <script>
+  const hostData = JSON.parse(localStorage.getItem("hostData")) || {};
   const weekDayPriceInput = document.getElementById('weekDayPrice');
   const resultDiv = document.getElementById('result');
 
-  // ✅ 기존 값 불러오기
-  document.addEventListener("DOMContentLoaded", function() {
-      if (weekDayPriceInput.value) {
-          resultDiv.innerHTML = `₩${parseInt(weekDayPriceInput.value).toLocaleString()}`;
+  document.addEventListener("DOMContentLoaded", function () {
+    if (hostData.price) {
+      weekDayPriceInput.value = hostData.price;
+      resultDiv.innerHTML = `₩${Number(hostData.price).toLocaleString()}`;
+    }
+
+    weekDayPriceInput.addEventListener('input', function () {
+      const price = parseInt(weekDayPriceInput.value);
+      if (!isNaN(price) && price > 0) {
+        resultDiv.innerHTML = `₩${price.toLocaleString()}`;
+      } else {
+        resultDiv.innerHTML = '';
       }
+    });
   });
 
-  // ✅ 입력 시 숫자 표시 업데이트
-  weekDayPriceInput.addEventListener('input', function() {
-      const price = parseFloat(weekDayPriceInput.value);
-      if (!isNaN(price) && price > 0) {
-          resultDiv.innerHTML = `₩${price.toLocaleString()}`;
-      } else {
-          resultDiv.innerHTML = '';
-      }
-  });
+  function savePrice() {
+    const price = parseInt(weekDayPriceInput.value);
+
+    if (isNaN(price) || price <= 0) {
+      alert("유효한 숙박 요금을 입력해주세요!");
+      weekDayPriceInput.focus();
+      return;
+    }
+
+    hostData.price = price;
+    localStorage.setItem("hostData", JSON.stringify(hostData));
+    console.log("💸 저장된 숙박 요금:", hostData.price);
+
+    window.location.href = "/user/receipt";
+  }
 </script>
+
 
 </body>
 </html>

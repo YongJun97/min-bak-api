@@ -83,10 +83,46 @@
   </div>
 </div>
 
-<!-- ✅ 숙소 데이터 최종 전송 폼 -->
-<form th:action="@{/user/register}" method="post">
+<!-- ✅ 최종 등록 버튼 클릭 시 hostData를 form으로 보내기 -->
+<form id="registerForm" action="/user/register" method="post">
   <button type="submit" class="start-btn">시작하기</button>
 </form>
+
+<script>
+  const hostData = JSON.parse(localStorage.getItem("hostData")) || {};
+  const form = document.getElementById("registerForm");
+
+  // 🔥 폼에 데이터를 추가하는 함수
+  function appendHiddenField(name, value) {
+    const input = document.createElement("input");
+    input.type = "hidden";
+    input.name = name;
+    input.value = value;
+    form.appendChild(input);
+  }
+
+  // ✅ hostData의 각 항목을 form에 추가
+  appendHiddenField("userId", hostData.userId);  // JWT에서 받아올 수도 있음
+  appendHiddenField("name", hostData.name);
+  appendHiddenField("title", hostData.title);
+  appendHiddenField("content", hostData.content);
+  appendHiddenField("address", hostData.location?.fullAddress || "");
+  appendHiddenField("latitude", hostData.location?.latitude || 0);
+  appendHiddenField("longitude", hostData.location?.longitude || 0);
+  appendHiddenField("price", hostData.price || 0);
+  appendHiddenField("useGuide", hostData.useGuide);
+
+  appendHiddenField("maxGuests", hostData.floorPlan?.maxGuests || 0);
+  appendHiddenField("bedrooms", hostData.floorPlan?.bedrooms || 0);
+  appendHiddenField("beds", hostData.floorPlan?.beds || 0);
+  appendHiddenField("bathrooms", hostData.floorPlan?.bathrooms || 0);
+  appendHiddenField("buildingType", hostData.buildingType);
+
+  // ✅ 배열 → 쉼표로 연결
+  appendHiddenField("optionIds", (hostData.optionIds || []).join(","));
+  appendHiddenField("categoryIds", (hostData.categoryIds || []).join(","));
+  appendHiddenField("fileUrls", (hostData.fileUrls || []).join(","));
+</script>
 
 </body>
 </html>

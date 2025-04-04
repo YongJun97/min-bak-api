@@ -38,7 +38,6 @@ import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/user")
-@SessionAttributes("hostDto")
 public class HostController {
     @Autowired
     private HostService hostService;
@@ -89,87 +88,28 @@ public class HostController {
     }
     // 숙소 유형 선택 페이지
     @GetMapping("/type")
-    public String roomsType(@ModelAttribute("hostDto") HostDto hostDto,Model model){
-        model.addAttribute("selectedType",hostDto.getBuildingType());
+    public String roomsType(){
         return "host-pages/type";
     }
     // 숙소 유형 저장 후 다음 페이지 이동
-    @PostMapping("/type/save")
-    @ResponseBody // AJAX 응답
-    public String saveBuildingType(@ModelAttribute("hostDto") HostDto hostDto, @RequestParam("buildingType") String buildingType) {
-        hostDto.setBuildingType(buildingType);
-        System.out.println("🏡 선택한 숙소 유형 저장: " + hostDto.getBuildingType()); // ✅ 콘솔 로그 확인
-        return "success"; // AJAX 요청 완료 응답
-    }
+    //@PostMapping("/type/save")
+    //@ResponseBody // AJAX 응답
+    //public String saveBuildingType(@ModelAttribute("hostDto") HostDto hostDto, @RequestParam("buildingType") String buildingType) {
+    //    hostDto.setBuildingType(buildingType);
+    //    System.out.println("🏡 선택한 숙소 유형 저장: " + hostDto.getBuildingType()); // ✅ 콘솔 로그 확인
+    //     return "success"; // AJAX 요청 완료 응답
+    //}
 
 
     @GetMapping("/location")
-    public String roomLocation(@ModelAttribute("hostDto") HostDto hostDto,Model model){
-        model.addAttribute("selectedAddress", hostDto.getAddress());
-        model.addAttribute("latitude", hostDto.getLatitude());
-        model.addAttribute("longitude", hostDto.getLongitude());
+    public String roomLocation(){
         return "host-pages/location";
     }
-    @PostMapping("/location/save")
-    public String saveLocation(@ModelAttribute("hostDto") HostDto hostDto,
-                               @RequestParam("province") String province,
-                               @RequestParam("city") String city,
-                               @RequestParam("district") String district,
-                               @RequestParam("roadAddress") String roadAddress,
-                               @RequestParam(value = "buildingName", required = false) String buildingName,
-                               @RequestParam(value = "postalCode", required = false) String postalCode,
-                               @RequestParam("latitude") Double latitude,
-                               @RequestParam("longitude") Double longitude) {
 
-        // 🔹 주소를 하나의 문자열로 조합하여 저장
-        String fullAddress = String.format("%s %s %s %s %s %s",
-                province, city, district, roadAddress,
-                (buildingName != null && !buildingName.isEmpty()) ? buildingName : "",
-                (postalCode != null && !postalCode.isEmpty()) ? "(우편번호: " + postalCode + ")" : "");
-
-        // 🔹 `HostDto`에 값 저장
-        hostDto.setAddress(fullAddress.trim()); // 불필요한 공백 제거 후 저장
-        hostDto.setLatitude(latitude);
-        hostDto.setLongitude(longitude);
-
-        // ✅ 콘솔 로그로 값 확인
-        System.out.println("📌 [저장할 주소 데이터]");
-        System.out.println("도/특별-광역시: " + province);
-        System.out.println("도시: " + city);
-        System.out.println("군/구: " + district);
-        System.out.println("도로명 주소: " + roadAddress);
-        System.out.println("건물명: " + buildingName);
-        System.out.println("우편번호: " + postalCode);
-        System.out.println("최종 저장할 주소: " + fullAddress);
-        System.out.println("위도: " + latitude);
-        System.out.println("경도: " + longitude);
-
-        return "redirect:/user/floor-plan"; // 다음 페이지로 이동
-    }
 
     @GetMapping("/floor-plan")
     public String floorPlan(){
         return "host-pages/floor-plan";
-    }
-    @PostMapping("/floor-plan/save")
-    public String saveFloorPlan(@ModelAttribute("hostDto") HostDto hostDto,
-                                @RequestParam("maxGuests") Integer maxGuests,
-                                @RequestParam("bedrooms") Integer bedrooms,
-                                @RequestParam("beds") Integer beds,
-                                @RequestParam("bathrooms") Integer bathrooms){
-
-        hostDto.setMaxGuests(maxGuests);
-        hostDto.setBedrooms(bedrooms);
-        hostDto.setBeds(beds);
-        hostDto.setBathrooms(bathrooms);
-        // ✅ 콘솔 로그 확인
-        System.out.println("📌 [저장된 숙소 기본 정보]");
-        System.out.println("게스트 수: " + hostDto.getMaxGuests());
-        System.out.println("침실 수: " + hostDto.getBedrooms());
-        System.out.println("침대 수: " + hostDto.getBeds());
-        System.out.println("욕실 수: " + hostDto.getBathrooms());
-
-        return "redirect:/user/charm"; // ✅ 다음 페이지로 이동
     }
 
     @GetMapping("/charm")
@@ -181,53 +121,10 @@ public class HostController {
     public String roomsOption(){
         return "host-pages/option";
     }
-    // ✅ 옵션 저장 (사용자가 선택한 옵션을 세션에 저장)
-    @PostMapping("/option/save")
-    public String saveOptions(@ModelAttribute("hostDto") HostDto hostDto,
-                              @RequestParam("optionIds") String optionIdsString) {
-        try {
-            // ✅ 쉼표(,)로 구분된 문자열을 `List<Integer>`로 변환
-            List<Integer> selectedOptions = Arrays.stream(optionIdsString.split(","))
-                    .map(String::trim)  // 공백 제거
-                    .map(Integer::parseInt) // Integer 변환
-                    .collect(Collectors.toList());
-
-            hostDto.setOptionIds(selectedOptions);
-            System.out.println("📌 [저장된 숙소 옵션] " + selectedOptions);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("❌ 옵션 변환 오류 발생!");
-        }
-
-        return "redirect:/user/category"; // 다음 단계로 이동
-    }
 
     @GetMapping("/category")
     public String roomsCategories() {
         return "host-pages/category";
-    }
-
-    // ✅ 선택한 카테고리 저장 (사용자가 선택한 카테고리를 세션에 저장)
-    @PostMapping("/category/save")
-    public String saveCategories(@ModelAttribute("hostDto") HostDto hostDto,
-                                 @RequestParam("categoryIds") String categoryIdsString) {
-        try {
-            // ✅ 쉼표(,)로 구분된 문자열을 `List<Integer>`로 변환
-            List<Integer> selectedCategories = Arrays.stream(categoryIdsString.split(","))
-                    .map(String::trim)  // 공백 제거
-                    .map(Integer::parseInt) // Integer 변환
-                    .collect(Collectors.toList());
-
-            hostDto.setCategoryIds(selectedCategories);
-            System.out.println("📌 [저장된 숙소 카테고리] " + selectedCategories);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("❌ 카테고리 변환 오류 발생!");
-        }
-
-        return "redirect:/user/photos"; // 다음 단계로 이동
     }
 
     @GetMapping("/photos")
@@ -236,53 +133,11 @@ public class HostController {
     }
     @Value("${file.upload.directory}")
     private String uploadDirectory;
-    // ✅ 사진 저장 (사용자가 업로드한 이미지 리스트를 세션에 저장)
-    @PostMapping("/photos/save")
-    public String savePhotos(@ModelAttribute("hostDto") HostDto hostDto,
-                             @RequestParam("files") MultipartFile[] files) {
-
-        List<String> fileUrls = new ArrayList<>();
-        for(MultipartFile file : hostDto.getFiles()) {
-            try {
-                String originalFilename = file.getOriginalFilename();
-                String uniqueFilename = UUID.randomUUID().toString() + "_" + originalFilename;
-
-
-                //실제로 파일을 저장할 위치
-                Path filePath = Paths.get(uploadDirectory, uniqueFilename);
-                Files.copy(file.getInputStream(), filePath);
-
-                ImageFileDto imageFile = hostService.saveFile(uniqueFilename, originalFilename ,(int) file.getSize(),0 ,"rooms");
-                fileUrls.add(uniqueFilename);
-
-            } catch (IOException e) {
-                System.out.println(e);
-                return "redirect:/user/photos";
-            }
-        }
-
-        hostDto.setFileUrls(fileUrls);
-
-        System.out.println(Arrays.toString(files));
-
-
-        return "redirect:/user/roomName";
-    }
-
-
-
 
 
     @GetMapping("/roomName")
     public String roomsName(){
         return "host-pages/roomName";
-    }
-    @PostMapping("roomName/save")
-    public String saveRoomName(@ModelAttribute("hostDto") HostDto hostDto,
-                               @RequestParam("name") String name){
-        hostDto.setName(name);
-        System.out.println("📌 [저장된 숙소 이름]: " + name);
-        return "redirect:/user/title"; // ✅ 다음 페이지 이동
     }
 
 
@@ -290,53 +145,19 @@ public class HostController {
     public String roomsTitle(){
         return "host-pages/title";
     }
-    @PostMapping("/title/save")
-    public String saveTitle(@ModelAttribute("hostDto") HostDto hostDto,
-                            @RequestParam("title") String title){
-        if(title == null || title.trim().isEmpty()){
-            return "redirect:/user/title?error";
-        }
 
-        hostDto.setTitle(title);
-        System.out.println("📌 [숙소 제목 저장 완료]: " + hostDto.getTitle());
-
-        return "redirect:/user/description";
-
-    }
 
     @GetMapping("/description")
     public String description(){
         return "host-pages/description";
     }
-    @PostMapping("/description/save")
-    public String saveDescription(@ModelAttribute("hostDto") HostDto hostDto,
-                                  @RequestParam("content") String content){
-        if(content == null || content.trim().isEmpty()){
-            return "redirect:/user/description?error"; // 빈 값이면 다시 입력
-        }
 
-        hostDto.setContent(content);
-        System.out.println("📌 [숙소 설명 저장 완료]: " + hostDto.getContent());
-
-        return "redirect:/user/useGuide";
-    }
 
     @GetMapping("useGuide")
     public String roomsUseGuide(){
         return "host-pages/useGuide";
     }
-    @PostMapping("/useGuide/save")
-    public String saveUseGuide(@ModelAttribute("hostDto") HostDto hostDto,
-                               @RequestParam("useGuide") String useGuide){
-        if(useGuide == null || useGuide.trim().isEmpty()){
-            return "redirect:/user/useGuide?error"; // 빈 값이면 다시 입력
-        }
 
-        hostDto.setUseGuide(useGuide);
-        System.out.println("📌 [숙소 이용 가이드 저장 완료]: " + hostDto.getUseGuide());
-
-        return  "redirect:/user/finish-setup";
-    }
 
     @GetMapping("/finish-setup")
     public String finish(){
@@ -347,30 +168,11 @@ public class HostController {
     public String roomsPrice(){
         return "host-pages/price";
     }
-    @PostMapping("/price/save")
-    public String savePrice(@ModelAttribute("hostDto") HostDto hostDto,
-                            @RequestParam("price") Integer price){
-        if(price == null || price <= 0){
-            return "redirect:/user/price?error";
-        }
 
-        hostDto.setPrice(price);
-        System.out.println("📌 [저장된 숙박 요금]: " + hostDto.getPrice());
-
-        return "redirect:/user/receipt";
-    }
 
     @GetMapping("/receipt")
-    public String reviewPage(@ModelAttribute("hostDto") HostDto hostDto, Model model) {
-        // ✅ 이미지 파일 URL이 없으면 기본 이미지 설정
-        if (hostDto.getFileUrls() == null || hostDto.getFileUrls().isEmpty()) {
-            List<String> defaultImages = new ArrayList<>();
-            defaultImages.add("https://via.placeholder.com/500x300?text=No+Image");
-            hostDto.setFileUrls(defaultImages);
-        }
+    public String reviewPage() {
 
-        model.addAttribute("imageFiles", hostDto.getFileUrls());
-        System.out.println("📌 [이미지 파일 리스트]: " + hostDto.getFileUrls());
         return "host-pages/receipt";
     }
 
@@ -391,7 +193,7 @@ public class HostController {
 
     // ✅ 최종 등록 페이지 (숙소 등록 요청)
     @PostMapping("/register")
-    public String registerRoom(@ModelAttribute("hostDto") HostDto hostDto,
+    public String registerRoom(@ModelAttribute HostDto hostDto,
                                HttpServletRequest request, HttpServletResponse response){
 
         List<String> fileUrls = hostDto.getFileUrls();  // HostDto에서 fileUrls를 가져옴

@@ -75,24 +75,42 @@
 <a href="/user/location" class="next-btn" id="next-btn" style="display: none;">다음</a>
 
 <script>
-  $(document).ready(function() {
-      $(".type-btn").click(function() {
-          var selectedType = $(this).data("value");
+  // 숙소 등록에 사용할 객체
+  const hostData = {
+    buildingType: null,
+    // 나중에 다른 단계에서 location, floorPlan, options 등 추가 가능
+  };
 
-          // AJAX 요청으로 선택한 값 저장
-          $.post("/user/type/save", { buildingType: selectedType }, function(response) {
-              if (response === "success") {
-                  console.log("✅ 숙소 유형 저장됨:", selectedType);
+  // 저장된 값이 유지되도록 localStorage 사용 (옵션)
+  const savedData = localStorage.getItem("hostData");
+  if (savedData) {
+    Object.assign(hostData, JSON.parse(savedData));
+    if (hostData.buildingType) {
+      document.querySelector(`[data-value="${hostData.buildingType}"]`)?.classList.add("selected");
+      document.getElementById("next-btn").style.display = "inline-block";
+    }
+  }
 
-                  // 버튼 선택 상태 업데이트
-                  $(".type-btn").removeClass("selected");
-                  $("[data-value='" + selectedType + "']").addClass("selected");
+  // 버튼 클릭 이벤트 등록
+  document.querySelectorAll(".type-btn").forEach(button => {
+    button.addEventListener("click", () => {
+      const selectedType = button.dataset.value;
 
-                  // "다음" 버튼 표시
-                  $("#next-btn").show();
-              }
-          });
-      });
+      // 데이터 객체에 저장
+      hostData.buildingType = selectedType;
+
+      // localStorage에 임시 저장 (선택사항)
+      localStorage.setItem("hostData", JSON.stringify(hostData));
+
+      // 버튼 UI 업데이트
+      document.querySelectorAll(".type-btn").forEach(btn => btn.classList.remove("selected"));
+      button.classList.add("selected");
+
+      // "다음" 버튼 보이기
+      document.getElementById("next-btn").style.display = "inline-block";
+
+      console.log("✅ 숙소 유형 선택됨:", selectedType);
+    });
   });
 </script>
 

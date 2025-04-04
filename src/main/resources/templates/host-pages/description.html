@@ -57,14 +57,40 @@
 <body>
 
 <h1>숙소를 더욱 특별하게 만들어 보세요</h1>
-<p>당신의 공간은 어떤 매력을 가지고 있나요?
+<p>당신의 공간은 어떤 매력을 가지고 있나요?<br>
   게스트가 머무를 때 느낄 따뜻한 분위기, 독특한 인테리어, 특별한 경험에 대해 이야기해주세요.</p>
 
-<!-- ✅ 숙소 설명 입력 폼 -->
-<form action="/user/description/save" method="post">
-  <textarea name="content" placeholder="당신의 숙소를 매력적으로 소개해 주세요!" th:text="${hostDto.content}"></textarea>
-  <button type="submit" class="next-btn">다음</button>
-</form>
+<!-- ✅ 숙소 설명 입력 -->
+<textarea id="descriptionInput" placeholder="당신의 숙소를 매력적으로 소개해 주세요!"></textarea>
+<button type="button" class="next-btn" onclick="saveDescription()">다음</button>
+
+<script>
+  const hostData = JSON.parse(localStorage.getItem("hostData")) || {};
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const input = document.getElementById("descriptionInput");
+    if (hostData.content) {
+      input.value = hostData.content;
+    }
+  });
+
+  function saveDescription() {
+    const input = document.getElementById("descriptionInput");
+    const value = input.value.trim();
+
+    if (!value) {
+      alert("숙소 설명을 입력해주세요!");
+      input.focus();
+      return;
+    }
+
+    hostData.content = value;
+    localStorage.setItem("hostData", JSON.stringify(hostData));
+    console.log("📝 저장된 숙소 설명:", hostData.content);
+
+    window.location.href = "/user/useGuide";
+  }
+</script>
 
 </body>
 </html>

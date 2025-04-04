@@ -83,11 +83,6 @@
 <div class="container">
   <h2>숙소에 제공되는 편의시설을 선택하세요.</h2>
 
-  <!-- ✅ Thymeleaf에서 옵션 데이터를 서버로 전송하는 폼 -->
-  <form id="optionForm" action="/user/option/save" method="post">
-    <!-- ✅ 선택된 옵션 ID를 저장하는 hidden input -->
-    <input type="hidden" id="selectedOptionsInput" name="optionIds">
-
     <!-- ✅ "필수" 카테고리 -->
     <div class="category">
       <h3>필수</h3>
@@ -142,61 +137,49 @@
       </div>
     </div>
 
-    <!-- ✅ "다음" 버튼 (폼 제출) -->
-    <button type="submit" class="next-btn">다음</button>
-  </form>
+  <!-- ✅ 다음 버튼 -->
+  <button type="button" class="next-btn" onclick="saveOptions()">다음</button>
+
 </div>
 
-<script th:inline="javascript">
-  document.addEventListener("DOMContentLoaded", function() {
-      const options = document.querySelectorAll(".option");
-      const hiddenInput = document.getElementById("selectedOptionsInput");
-      const form = document.querySelector("#optionForm");
+<script>
+  const hostData = JSON.parse(localStorage.getItem("hostData")) || {};
+  hostData.optionIds = hostData.optionIds || [];
 
+  let selectedOptions = new Set(hostData.optionIds);
 
+  document.addEventListener("DOMContentLoaded", function () {
+    const options = document.querySelectorAll(".option");
 
-      // ✅ 기존 선택된 옵션을 JavaScript에서 처리
-      let selectedOptions = new Set();
-
-      // ✅ Thymeleaf에서 기존 선택된 옵션 유지
-      let existingOptions = [[${hostDto.optionIds}]];
-      if (existingOptions && Array.isArray(existingOptions)) {
-          existingOptions.forEach(id => selectedOptions.add(parseInt(id)));
+    // ✅ 선택 복원
+    options.forEach(option => {
+      const id = parseInt(option.dataset.optionId);
+      if (selectedOptions.has(id)) {
+        option.classList.add("selected");
       }
 
-      // ✅ 선택된 옵션 표시 (초기 로드 시)
-      options.forEach(option => {
-          let optionId = parseInt(option.dataset.optionId);
-          if (selectedOptions.has(optionId)) {
-              option.classList.add("selected");
-          }
+      // ✅ 클릭 시 토글
+      option.addEventListener("click", () => {
+        if (selectedOptions.has(id)) {
+          selectedOptions.delete(id);
+          option.classList.remove("selected");
+        } else {
+          selectedOptions.add(id);
+          option.classList.add("selected");
+        }
       });
-
-      // ✅ 옵션 클릭 시 선택/해제 처리
-      options.forEach(option => {
-          option.addEventListener("click", function() {
-              let optionId = parseInt(this.dataset.optionId);
-              if (selectedOptions.has(optionId)) {
-                  selectedOptions.delete(optionId);
-                  this.classList.remove("selected");
-              } else {
-                  selectedOptions.add(optionId);
-                  this.classList.add("selected");
-              }
-
-              // ✅ 쉼표로 구분된 문자열로 변환하여 hidden input에 저장
-              hiddenInput.value = Array.from(selectedOptions).join(",");
-              console.log("📌 선택된 옵션 ID:", hiddenInput.value);
-          });
-      });
-
-      // ✅ form 제출 시 `optionIds`를 쉼표로 구분된 문자열로 변환하여 보냄
-      form.addEventListener("submit", function(event) {
-          hiddenInput.value = Array.from(selectedOptions).join(",");
-          console.log("🚀 최종 전송 데이터:", hiddenInput.value);
-      });
+    });
   });
+
+  // ✅ 저장 후 다음 페이지 이동
+  function saveOptions() {
+    hostData.optionIds = Array.from(selectedOptions);
+    localStorage.setItem("hostData", JSON.stringify(hostData));
+    console.log("✅ 저장된 옵션 ID 목록:", hostData.optionIds);
+    window.location.href = "/user/category";
+  }
 </script>
+
 
 </body>
 </html>

@@ -151,26 +151,24 @@
 </div>
 
 <!-- ✅ 입력 필드 -->
-<form id="locationForm" action="/user/location/save" method="post">
-  <div id="address-container">
-    <label>도/특별-광역시: <input type="text" id="province" name="province"></label>
-    <label>도시: <input type="text" id="city" name="city"></label>
-    <label>군/구: <input type="text" id="district" name="district"></label>
-    <label>도로명 주소: <input type="text" id="road-address" name="roadAddress"></label>
-    <label>아파트 층수/호수, 건물명: <input type="text" id="building-name" name="buildingName"></label>
-    <label>우편번호: <input type="text" id="postal-code" name="postalCode"></label>
+<div id="address-container">
+  <label>도/특별-광역시: <input type="text" id="province"></label>
+  <label>도시: <input type="text" id="city"></label>
+  <label>군/구: <input type="text" id="district"></label>
+  <label>도로명 주소: <input type="text" id="road-address"></label>
+  <label>아파트 층수/호수, 건물명: <input type="text" id="building-name"></label>
+  <label>우편번호: <input type="text" id="postal-code"></label>
+  <input type="hidden" id="latitude">
+  <input type="hidden" id="longitude">
 
-    <!-- ✅ 숨겨진 위도 & 경도 필드 -->
-    <input type="hidden" id="latitude" name="latitude">
-    <input type="hidden" id="longitude" name="longitude">
+  <!-- ✅ 다음 버튼 -->
+  <button type="button" class="next-btn" id="next-btn" onclick="goToNextPage()">다음</button>
+</div>
 
-    <!-- ✅ 다음 버튼 -->
-    <button type="submit" class="next-btn" id="next-btn">다음</button>
-  </div>
-</form>
 
 <script>
   let map, marker;
+  const hostData = JSON.parse(localStorage.getItem("hostData")) || {};
 
   window.initMap = function() {
     map = new google.maps.Map(document.getElementById("map"), {
@@ -229,7 +227,6 @@
     document.getElementById("longitude").value = place.geometry.location.lng();
   };
 
-  // ✅ 🔥 `handleEnter` 함수 다시 추가 (Enter 키로 검색 가능)
   window.handleEnter = function(event) {
     if (event.key === "Enter") {
       event.preventDefault();
@@ -237,7 +234,6 @@
     }
   };
 
-  // ✅ 🔥 검색 버튼 클릭 시 실행될 `searchAddress` 함수 추가
   window.searchAddress = function() {
     const searchBox = document.getElementById("search-box").value;
     const geocoder = new google.maps.Geocoder();
@@ -253,7 +249,37 @@
       }
     });
   };
+
+  // ✅ "다음" 버튼 클릭 시 → 입력값을 hostData.location 에 저장 후 다음 페이지 이동
+  function goToNextPage() {
+    hostData.location = {
+      province: document.getElementById("province").value,
+      city: document.getElementById("city").value,
+      district: document.getElementById("district").value,
+      roadAddress: document.getElementById("road-address").value,
+      buildingName: document.getElementById("building-name").value,
+      postalCode: document.getElementById("postal-code").value,
+      latitude: parseFloat(document.getElementById("latitude").value),
+      longitude: parseFloat(document.getElementById("longitude").value),
+      fullAddress: buildFullAddress()
+    };
+
+    localStorage.setItem("hostData", JSON.stringify(hostData));
+    console.log("📦 저장된 위치 정보:", hostData.location);
+    window.location.href = "/user/floor-plan";
+  }
+
+  function buildFullAddress() {
+    const p = document.getElementById("province").value;
+    const c = document.getElementById("city").value;
+    const d = document.getElementById("district").value;
+    const r = document.getElementById("road-address").value;
+    const b = document.getElementById("building-name").value;
+    const pc = document.getElementById("postal-code").value;
+    return `${p} ${c} ${d} ${r} ${b} ${pc ? `(우편번호: ${pc})` : ""}`.trim();
+  }
 </script>
+
 
 </body>
 </html>

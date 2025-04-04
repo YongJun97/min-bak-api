@@ -99,33 +99,51 @@
 <h1>숙소 검토하기</h1>
 <p>게스트에게 표시되는 정보는 다음과 같습니다. 모든 정보가 정확한지 확인하세요.</p>
 
-<!-- ✅ 미리보기 컨테이너 -->
 <div class="preview-container">
-  <!-- ✅ 첫 번째 이미지 표시 (없으면 기본 이미지) -->
-  <img id="roomImage"
-       th:src="${(imageFiles != null and not #lists.isEmpty(imageFiles)) ? '/uploads/' + imageFiles[0] : 'https://via.placeholder.com/500x300?text=No+Image'}"
-       alt="숙소 이미지"
-       class="main-image">
+  <!-- ✅ 이미지 -->
+  <img id="roomImage" class="main-image" src="" alt="숙소 이미지 미리보기">
 
-
-  <!-- ✅ 숙소 정보 -->
+  <!-- ✅ 정보 -->
   <div class="room-info">
-    <h2 th:text="${hostDto.title}"></h2>
-    <p th:text="${hostDto.address}">숙소 위치가 여기에 표시됩니다.</p>
-    <p class="price" th:text="|₩${#numbers.formatInteger(hostDto.price, 3, 'COMMA')} /박|">₩ 숙소 가격</p>
+    <h2 id="roomTitle"></h2>
+    <p id="roomAddress">숙소 위치가 여기에 표시됩니다.</p>
+    <p id="roomPrice" class="price">₩ 숙소 가격</p>
   </div>
 </div>
 
-<!-- ✅ 다음 버튼 -->
 <a href="/user/publish" class="next-btn">다음</a>
 
-<script th:inline="javascript">
-  let images = [[${hostDto.fileUrls}]];
-  console.log("📌 [이미지 개수]:", images.length);
-  if (images.length > 0) {
-      console.log("📌 [첫 번째 이미지 URL]:", images[0]);
+
+
+<script>
+  const hostData = JSON.parse(localStorage.getItem("hostData")) || {};
+
+  document.addEventListener("DOMContentLoaded", () => {
+  const roomImage = document.getElementById("roomImage");
+  const roomTitle = document.getElementById("roomTitle");
+  const roomAddress = document.getElementById("roomAddress");
+  const roomPrice = document.getElementById("roomPrice");
+
+  if (hostData.fileUrls && hostData.fileUrls.length > 0) {
+    roomImage.src = hostData.fileUrls[0];
+  } else {
+    roomImage.src = "https://via.placeholder.com/500x300?text=No+Image";
   }
+
+  roomTitle.textContent = hostData.title || "제목 없음";
+  roomAddress.textContent = hostData.location?.fullAddress || "주소 정보 없음";
+
+  if (hostData.price) {
+    roomPrice.textContent = `₩${hostData.price.toLocaleString()} /박`;
+  } else {
+    roomPrice.textContent = "₩ 가격 정보 없음";
+  }
+
+  console.log("📌 숙소 미리보기 데이터:", hostData);
+});
+
 </script>
+
 
 </body>
 </html>

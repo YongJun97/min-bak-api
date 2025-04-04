@@ -72,48 +72,49 @@
 <h1>숙소 제목을 정해주세요</h1>
 <p>숙소의 첫인상을 결정하는 중요한 요소입니다. 짧고 기억에 남는 제목을 만들어 보세요.</p>
 
-<!-- ✅ 제목 입력 -->
-<form action="/user/title/save" method="post">
-  <div class="textarea-container">
-    <textarea id="titleInput" name="title" maxlength="32" placeholder="숙소 제목을 입력하세요"
-              th:text="${hostDto.title}"></textarea>
-    <p class="char-count" id="charCount">0/32</p>
-  </div>
+<div class="textarea-container">
+  <textarea id="titleInput" maxlength="32" placeholder="숙소 제목을 입력하세요"></textarea>
+  <p class="char-count" id="charCount">0/32</p>
+</div>
 
-  <!-- ✅ 다음 버튼 -->
-  <button type="submit" class="next-btn">다음</button>
-</form>
+<button type="button" class="next-btn" onclick="saveTitle()">다음</button>
+
 
 <script>
+  const hostData = JSON.parse(localStorage.getItem("hostData")) || {};
+
   const titleInput = document.getElementById("titleInput");
   const charCount = document.getElementById("charCount");
 
-  // ✅ 글자 수 카운트 업데이트
-  titleInput.addEventListener("input", function() {
-      const currentLength = titleInput.value.length;
-      charCount.textContent = `${currentLength}/32`;
-  });
-
-  // ✅ 기존 데이터 유지 (뒤로 가기)
+  // ✅ 기존 데이터 복원
   document.addEventListener("DOMContentLoaded", function () {
-      const savedTitle = localStorage.getItem("title");
-      if (savedTitle) {
-          titleInput.value = savedTitle;
-          charCount.textContent = `${savedTitle.length}/32`;
-      }
+    if (hostData.title) {
+      titleInput.value = hostData.title;
+      charCount.textContent = `${hostData.title.length}/32`;
+    }
+
+    titleInput.addEventListener("input", () => {
+      charCount.textContent = `${titleInput.value.length}/32`;
+    });
   });
 
-  // ✅ 제목 저장 (로컬스토리지 & 제출 전 체크)
-  document.querySelector("form").addEventListener("submit", function(event) {
-      const title = titleInput.value.trim();
-      if (title.length === 0) {
-          alert("숙소 제목을 입력해주세요!");
-          event.preventDefault();
-          return;
-      }
-      localStorage.setItem("title", title);
-  });
+  // ✅ 저장 + 이동
+  function saveTitle() {
+    const title = titleInput.value.trim();
+    if (!title) {
+      alert("숙소 제목을 입력해주세요!");
+      titleInput.focus();
+      return;
+    }
+
+    hostData.title = title;
+    localStorage.setItem("hostData", JSON.stringify(hostData));
+    console.log("📝 저장된 숙소 제목:", hostData.title);
+
+    window.location.href = "/user/description";
+  }
 </script>
+
 
 </body>
 </html>

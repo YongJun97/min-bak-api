@@ -89,108 +89,89 @@
     </style>
 </head>
 <body>
+<!-- ✅ 더 이상 form 없음 -->
 <div class="container">
     <h1>숙소 기본 정보를 알려주세요.</h1>
 
-    <!-- ✅ Form 추가하여 데이터 전송 -->
-    <form id="floorPlanForm" action="/user/floor-plan/save" method="post">
-        <!-- ✅ 숨겨진 입력 필드 (세션 값 유지) -->
-        <input type="hidden" id="maxGuests" name="maxGuests" th:value="${hostDto.maxGuests} ?: 0">
-        <input type="hidden" id="bedrooms" name="bedrooms" th:value="${hostDto.bedrooms} ?: 0">
-        <input type="hidden" id="beds" name="beds" th:value="${hostDto.beds} ?: 0">
-        <input type="hidden" id="bathrooms" name="bathrooms" th:value="${hostDto.bathrooms} ?: 0">
-
-        <div class="counter-container">
-            <div class="counter">
-                <span class="label">게스트</span>
-                <div class="controls">
-                    <button type="button" onclick="decrement('maxGuests')">-</button>
-                    <span class="count" id="maxGuestsCount" th:text="${hostDto.maxGuests} ?: 0">0</span>
-                    <button type="button" onclick="increment('maxGuests')">+</button>
-                </div>
-            </div>
-            <div class="counter">
-                <span class="label">침실</span>
-                <div class="controls">
-                    <button type="button" onclick="decrement('bedrooms')">-</button>
-                    <span class="count" id="bedroomsCount" th:text="${hostDto.bedrooms} ?: 0">0</span>
-                    <button type="button" onclick="increment('bedrooms')">+</button>
-                </div>
-            </div>
-            <div class="counter">
-                <span class="label">침대</span>
-                <div class="controls">
-                    <button type="button" onclick="decrement('beds')">-</button>
-                    <span class="count" id="bedsCount" th:text="${hostDto.beds} ?: 0">0</span>
-                    <button type="button" onclick="increment('beds')">+</button>
-                </div>
-            </div>
-            <div class="counter">
-                <span class="label">욕실</span>
-                <div class="controls">
-                    <button type="button" onclick="decrement('bathrooms')">-</button>
-                    <span class="count" id="bathroomsCount" th:text="${hostDto.bathrooms} ?: 0">0</span>
-                    <button type="button" onclick="increment('bathrooms')">+</button>
-                </div>
+    <div class="counter-container">
+        <div class="counter">
+            <span class="label">게스트</span>
+            <div class="controls">
+                <button type="button" onclick="decrement('maxGuests')">-</button>
+                <span class="count" id="maxGuestsCount">0</span>
+                <button type="button" onclick="increment('maxGuests')">+</button>
             </div>
         </div>
+        <div class="counter">
+            <span class="label">침실</span>
+            <div class="controls">
+                <button type="button" onclick="decrement('bedrooms')">-</button>
+                <span class="count" id="bedroomsCount">0</span>
+                <button type="button" onclick="increment('bedrooms')">+</button>
+            </div>
+        </div>
+        <div class="counter">
+            <span class="label">침대</span>
+            <div class="controls">
+                <button type="button" onclick="decrement('beds')">-</button>
+                <span class="count" id="bedsCount">0</span>
+                <button type="button" onclick="increment('beds')">+</button>
+            </div>
+        </div>
+        <div class="counter">
+            <span class="label">욕실</span>
+            <div class="controls">
+                <button type="button" onclick="decrement('bathrooms')">-</button>
+                <span class="count" id="bathroomsCount">0</span>
+                <button type="button" onclick="increment('bathrooms')">+</button>
+            </div>
+        </div>
+    </div>
 
-        <!-- ✅ "다음" 버튼 (폼 제출) -->
-        <button type="submit" class="next-btn">다음</button>
-    </form>
+    <button type="button" class="next-btn" onclick="saveFloorPlan()">다음</button>
 </div>
 
+
 <script>
-    function increment(type) {
-        const countEl = document.getElementById(type + 'Count');
-        const inputEl = document.getElementById(type);
+    const hostData = JSON.parse(localStorage.getItem("hostData")) || {};
 
-        if (!countEl || !inputEl) {
-            console.error(`🚨 오류: ${type}Count 요소를 찾을 수 없음!`);
-            return;
-        }
-
-        let count = parseInt(countEl.innerText, 10);
-        if (count < 8) {
-            count += 1;
-            countEl.innerText = count;
-            inputEl.value = count;
-        }
-
-        console.log(`✅ ${type} 증가:`, count);
+function increment(type) {
+    const countEl = document.getElementById(type + 'Count');
+    let count = parseInt(countEl.innerText, 10);
+    if (count < 8) {
+        countEl.innerText = ++count;
     }
-
-    function decrement(type) {
-        const countEl = document.getElementById(type + 'Count');
-        const inputEl = document.getElementById(type);
-
-        if (!countEl || !inputEl) {
-            console.error(`🚨 오류: ${type}Count 요소를 찾을 수 없음!`);
-            return;
-        }
-
-        let count = parseInt(countEl.innerText, 10);
-        if (count > 0) {
-            count -= 1;
-            countEl.innerText = count;
-            inputEl.value = count;
-        }
-
-        console.log(`✅ ${type} 감소:`, count);
+}
+function decrement(type) {
+    const countEl = document.getElementById(type + 'Count');
+    let count = parseInt(countEl.innerText, 10);
+    if (count > 0) {
+        countEl.innerText = --count;
     }
+}
 
-    // ✅ 기존 데이터 유지 (뒤로 가기 시 값 복원)
-    document.addEventListener("DOMContentLoaded", function () {
-        const maxGuests = document.getElementById("maxGuests").value || 0;
-        const bedrooms = document.getElementById("bedrooms").value || 0;
-        const beds = document.getElementById("beds").value || 0;
-        const bathrooms = document.getElementById("bathrooms").value || 0;
+document.addEventListener("DOMContentLoaded", function () {
+    const plan = hostData.floorPlan || {};
+    document.getElementById("maxGuestsCount").innerText = plan.maxGuests || 0;
+    document.getElementById("bedroomsCount").innerText = plan.bedrooms || 0;
+    document.getElementById("bedsCount").innerText = plan.beds || 0;
+    document.getElementById("bathroomsCount").innerText = plan.bathrooms || 0;
+});
 
-        document.getElementById("maxGuestsCount").innerText = maxGuests;
-        document.getElementById("bedroomsCount").innerText = bedrooms;
-        document.getElementById("bedsCount").innerText = beds;
-        document.getElementById("bathroomsCount").innerText = bathrooms;
-    });
+function saveFloorPlan() {
+    hostData.floorPlan = {
+        maxGuests: parseInt(document.getElementById("maxGuestsCount").innerText),
+        bedrooms: parseInt(document.getElementById("bedroomsCount").innerText),
+        beds: parseInt(document.getElementById("bedsCount").innerText),
+        bathrooms: parseInt(document.getElementById("bathroomsCount").innerText)
+    };
+
+    localStorage.setItem("hostData", JSON.stringify(hostData));
+    console.log("✅ 저장된 floorPlan:", hostData.floorPlan);
+    window.location.href = "/user/charm";
+}
+
 </script>
+
 </body>
 </html>

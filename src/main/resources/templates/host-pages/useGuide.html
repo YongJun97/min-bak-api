@@ -73,32 +73,48 @@
 <p>게스트가 더욱 편리하게 머무를 수 있도록 체크인/체크아웃 시간, 이용 규칙,
   시설 사용 방법, 주의 사항 등을 자세히 안내해주세요.</p>
 
-<!-- ✅ 이용 가이드 입력 폼 -->
-<form action="/user/useGuide/save" method="post">
-  <div class="textarea-container">
-        <textarea name="useGuide" id="useGuideInput" maxlength="500"
-                  placeholder="예: 체크인은 오후 3시 이후이며, 체크아웃은 오전 11시까지입니다."
-                  th:text="${hostDto.useGuide}"></textarea>
-    <p class="char-count" id="charCount">0/500</p>
-  </div>
-  <button type="submit" class="next-btn">다음</button>
-</form>
+<div class="textarea-container">
+  <textarea id="useGuideInput" maxlength="500"
+            placeholder="예: 체크인은 오후 3시 이후이며, 체크아웃은 오전 11시까지입니다."></textarea>
+  <p class="char-count" id="charCount">0/500</p>
+</div>
+
+<button type="button" class="next-btn" onclick="saveUseGuide()">다음</button>
+
 
 <script>
+  const hostData = JSON.parse(localStorage.getItem("hostData")) || {};
   const useGuideInput = document.getElementById('useGuideInput');
   const charCount = document.getElementById('charCount');
 
-  // 글자 수 업데이트
-  useGuideInput.addEventListener('input', function() {
-      const currentLength = useGuideInput.value.length;
-      charCount.textContent = currentLength + '/500';
+  // ✅ 기존 값 복원
+  document.addEventListener("DOMContentLoaded", function () {
+    if (hostData.useGuide) {
+      useGuideInput.value = hostData.useGuide;
+    }
+    charCount.textContent = useGuideInput.value.length + "/500";
+
+    useGuideInput.addEventListener("input", function () {
+      charCount.textContent = useGuideInput.value.length + "/500";
+    });
   });
 
-  // ✅ 기존 값 불러오기
-  document.addEventListener("DOMContentLoaded", function() {
-      const currentLength = useGuideInput.value.length;
-      charCount.textContent = currentLength + '/500';
-  });
+  // ✅ 저장 및 이동
+  function saveUseGuide() {
+    const value = useGuideInput.value.trim();
+
+    if (!value) {
+      alert("이용 가이드를 입력해주세요!");
+      useGuideInput.focus();
+      return;
+    }
+
+    hostData.useGuide = value;
+    localStorage.setItem("hostData", JSON.stringify(hostData));
+    console.log("📘 저장된 이용 가이드:", hostData.useGuide);
+
+    window.location.href = "/user/finish-setup";
+  }
 </script>
 
 </body>
