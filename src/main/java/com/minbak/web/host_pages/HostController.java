@@ -194,51 +194,116 @@ public class HostController {
     // ✅ 최종 등록 페이지 (숙소 등록 요청)
     @PostMapping("/register")
     public String registerRoom(@ModelAttribute HostDto hostDto,
-                               HttpServletRequest request, HttpServletResponse response){
+                               HttpServletRequest request,
+                               HttpServletResponse response){
 
-        List<String> fileUrls = hostDto.getFileUrls();  // HostDto에서 fileUrls를 가져옴
+        List<String> fileUrls = hostDto.getFileUrls();
 
-        hostService.insertRoom(hostDto);
-        int roomId = hostDto.getRoomId();  // 생성된 roomId를 가져옴
-        createHostMapper.insertRoomOptions(hostDto.getRoomId(),hostDto.getOptionIds());
-        createHostMapper.insertRoomCategories(hostDto.getRoomId(), hostDto.getCategoryIds());
-        for (String fileUrl : fileUrls){
-            hostService.updateRoomImages(fileUrl, roomId);
-        }
-        for (RoleDto role : usersService.findRolesByUserId(hostDto.getUserId())){
-            if(role.getRole().equals("ROLE_HOST")){
-                return "redirect:/host/today";
+        if (fileUrls != null) {
+            for (String url : fileUrls) {
+                System.out.println("URL: " + url);
             }
         }
 
-        usersService.createHostRoleByUserIdAndRoleId(hostDto.getUserId(),2);
+        System.out.println("📦 fileUrls from hostDto: " + hostDto.getFileUrls());
+        System.out.println("📦 fileUrls from request: " + request.getParameter("fileUrls"));
 
+//        List<String> fileUrls = hostDto.getFileUrls();  // HostDto에서 fileUrls를 가져옴
+//
+//        hostService.insertRoom(hostDto);
+//        int roomId = hostDto.getRoomId();  // 생성된 roomId를 가져옴
+//        createHostMapper.insertRoomOptions(hostDto.getRoomId(),hostDto.getOptionIds());
+//        createHostMapper.insertRoomCategories(hostDto.getRoomId(), hostDto.getCategoryIds());
+//        for (String fileUrl : fileUrls){
+//            hostService.insertRoomImages(fileUrl, roomId);
+//        }
+//        for (RoleDto role : usersService.findRolesByUserId(hostDto.getUserId())){
+//            if(role.getRole().equals("ROLE_HOST")){
+//                return "redirect:/host/today";
+//            }
+//        }
+//
+//        usersService.createHostRoleByUserIdAndRoleId(hostDto.getUserId(),2);
+//
+//        String username = usersService.findUserEmailByUserId(hostDto.getUserId());
+//
+//        String refreshToken = jwtUtil.getRefreshTokenFromCookies(request);
+//        usersService.deleteRefreshTokenDataByRefreshToken(refreshToken);
+//
+//        UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
+//
+//        //해당 인증객체의 roles가져와서
+//        List<String> roles = userDetails.getAuthorities().stream()
+//                .map(GrantedAuthority::getAuthority)
+//                .collect(Collectors.toList());
+//
+//        // 새로운 Access Token 생성
+//        String newAccessToken = jwtUtil.generateAccessToken(username, roles);
+//        String newRefreshToken = jwtUtil.generateRefreshToken(username);
+//
+//        //토큰을 createRefreshCookie메서드(아래정의됨)로 쿠키에 추가
+//        response.addCookie(jwtUtil.createRefreshCookie("refreshToken", newRefreshToken));
+//
+//        //엑세스토큰도 생성해서 쿠키로 전달
+//        response.addCookie(jwtUtil.createAccessCookie("jwtToken",newAccessToken));
+//
+//        usersService.createRefreshTokenData(username,newRefreshToken, REFRESH_TOKEN_EXPIRATION_TIME);
+//
+//
+//        usersService.insertNewHost(hostDto.getUserId(),"미검증");
+//        return "redirect:/host/today";
+
+
+        // ✅ fileUrls만 수동 파싱
+        String[] fileUrlsArray = request.getParameterValues("fileUrls");
+        if (fileUrlsArray != null) {
+            hostDto.setFileUrls(Arrays.asList(fileUrlsArray));
+        }
+
+
+        // 1️⃣ rooms 테이블에 숙소 정보 저장
+        hostService.insertRoom(hostDto);
+        int roomId = hostDto.getRoomId();
+
+        // 2️⃣ 옵션, 카테고리 정보 저장
+        createHostMapper.insertRoomOptions(roomId, hostDto.getOptionIds());
+        createHostMapper.insertRoomCategories(roomId, hostDto.getCategoryIds());
+
+        // ✅ 3️⃣ 이미지 디코딩 후 image_files 테이블에 저장
+        hostService.insertRoomImagesFromHostDto(hostDto, roomId);
+
+
+
+        // 4️⃣ 사용자 role 검사 및 추가
+        for (RoleDto role : usersService.findRolesByUserId(hostDto.getUserId())) {
+            if (role.getRole().equals("ROLE_HOST")) {
+                return "redirect:/host/today";
+            }
+        }
+        usersService.createHostRoleByUserIdAndRoleId(hostDto.getUserId(), 2);
+
+        // 5️⃣ 토큰 재발급 및 쿠키 갱신
         String username = usersService.findUserEmailByUserId(hostDto.getUserId());
-
         String refreshToken = jwtUtil.getRefreshTokenFromCookies(request);
         usersService.deleteRefreshTokenDataByRefreshToken(refreshToken);
 
         UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
-
-        //해당 인증객체의 roles가져와서
         List<String> roles = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
 
-        // 새로운 Access Token 생성
         String newAccessToken = jwtUtil.generateAccessToken(username, roles);
         String newRefreshToken = jwtUtil.generateRefreshToken(username);
-
-        //토큰을 createRefreshCookie메서드(아래정의됨)로 쿠키에 추가
         response.addCookie(jwtUtil.createRefreshCookie("refreshToken", newRefreshToken));
+        response.addCookie(jwtUtil.createAccessCookie("jwtToken", newAccessToken));
 
-        //엑세스토큰도 생성해서 쿠키로 전달
-        response.addCookie(jwtUtil.createAccessCookie("jwtToken",newAccessToken));
+        usersService.createRefreshTokenData(username, newRefreshToken, REFRESH_TOKEN_EXPIRATION_TIME);
 
-        usersService.createRefreshTokenData(username,newRefreshToken, REFRESH_TOKEN_EXPIRATION_TIME);
+        usersService.insertNewHost(hostDto.getUserId(), "미검증");
 
+        System.out.println("📸 fileUrls = " + hostDto.getFileUrls());
 
-        usersService.insertNewHost(hostDto.getUserId(),"미검증");
         return "redirect:/host/today";
+
     }
 }

@@ -121,7 +121,10 @@
   // ✅ 배열 → 쉼표로 연결
   appendHiddenField("optionIds", (hostData.optionIds || []).join(","));
   appendHiddenField("categoryIds", (hostData.categoryIds || []).join(","));
-  appendHiddenField("fileUrls", (hostData.fileUrls || []).join(","));
+  // ✅ 🔥 fileUrls를 개별 input으로 추가!
+  (hostData.fileUrls || []).forEach(url => {
+    appendHiddenField("fileUrls", url);
+  });
 </script>
 
 </body>

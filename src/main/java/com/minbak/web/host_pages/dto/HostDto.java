@@ -1,5 +1,6 @@
 package com.minbak.web.host_pages.dto;
 
+import com.minbak.web.file_upload.ImageFileDto;
 import lombok.Data;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,8 +25,8 @@ public class HostDto {
     private Integer beds;         // 침대 개수
     private Integer bathrooms;    // 욕실 개수
     private String buildingType;  // 건물 유형 (아파트, 주택, 빌라)
-    private MultipartFile[] files;
 
+    private List<ImageFileDto> files;
     private List<Integer> categoryIds;
     private List<String> fileUrls;
    // private List<CreateImageDto> imageFiles; // 추가: 이미지 URL 리스트

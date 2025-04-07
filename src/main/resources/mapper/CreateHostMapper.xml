@@ -19,7 +19,13 @@
         INSERT INTO image_files (file_url, file_name, file_size, uploaded_at, user_id, entity_type, entity_id)
         VALUES
         <foreach collection="hostDto.files" item="image" separator=",">
-            (#{image.fileUrl}, #{image.fileName}, #{image.fileSize}, NOW(), #{image.userId}, 'rooms', #{roomId})
+            (#{image.fileUrl},
+             #{image.fileName},
+             #{image.fileSize},
+             NOW(),
+             #{image.userId},
+             'rooms',
+             #{roomId})
         </foreach>
     </insert>
 
